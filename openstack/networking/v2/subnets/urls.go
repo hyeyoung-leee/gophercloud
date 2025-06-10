@@ -3,11 +3,11 @@ package subnets
 import "github.com/gophercloud/gophercloud/v2"
 
 func resourceURL(c *gophercloud.ServiceClient, id string) string {
-	return c.ServiceURL("subnets", id)
+	return c.ServiceURL("vpcsubnets", id)
 }
 
 func rootURL(c *gophercloud.ServiceClient) string {
-	return c.ServiceURL("subnets")
+	return c.ServiceURL("vpcsubnets")
 }
 
 func listURL(c *gophercloud.ServiceClient) string {
