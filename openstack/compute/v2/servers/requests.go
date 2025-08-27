@@ -1376,3 +1376,71 @@ func Resume(ctx context.Context, client *gophercloud.ServiceClient, id string) (
 	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
+
+type ExecuteScriptOptsBuilder interface {
+	ToExecuteScriptMap() map[string]any
+}
+
+// ExecuteScriptOpts represents the configuration options used to execute a script
+// on a server instance.
+type ExecuteScriptOpts struct {
+	// Binary specifies the binary executable to use for script execution.
+	// Common values: "/bin/bash", "/bin/sh", "/usr/bin/python3", etc.
+	// Defaults to "/bin/bash" if not specified.
+	Binary string `json:"binary,omitempty"`
+
+	// Data contains base64-encoded script data.
+	Data string `json:"data" required:"true"`
+
+	// TraceStdOut enables tracing of standard output.
+	// If true, standard output will be traced and logged.
+	TraceStdOut bool `json:"trace_std_out" required:"true"`
+
+	// TraceStdError enables tracing of standard error.
+	// If true, standard error will be traced and logged.
+	TraceStdError bool `json:"trace_std_error" required:"true"`
+
+	// StdOutFile specifies the file path to redirect standard output.
+	// If empty, standard output will not be redirected to a file.
+	StdOutFile string `json:"std_out_file,omitempty"`
+
+	// StdErrorFile specifies the file path to redirect standard error.
+	// If empty, standard error will not be redirected to a file.
+	StdErrorFile string `json:"std_error_file,omitempty"`
+}
+
+// ToExecuteScriptMap formats an ExecuteScriptOpts structure into a request body.
+func (opts ExecuteScriptOpts) ToExecuteScriptMap() map[string]any {
+	// Set default binary if not specified
+	binary := opts.Binary
+	if binary == "" {
+		binary = "/bin/bash"
+	}
+
+	scriptData := map[string]any{
+		"binary":          binary,
+		"data":            opts.Data,
+		"trace_std_out":   opts.TraceStdOut,
+		"trace_std_error": opts.TraceStdError,
+	}
+
+	if opts.StdOutFile != "" {
+		scriptData["std_out_file"] = opts.StdOutFile
+	}
+
+	if opts.StdErrorFile != "" {
+		scriptData["std_error_file"] = opts.StdErrorFile
+	}
+
+	return map[string]any{"guestExecScript": scriptData}
+}
+
+// ExecuteScript executes a script on the specified server instance.
+func ExecuteScript(ctx context.Context, client *gophercloud.ServiceClient, id string, opts ExecuteScriptOptsBuilder) (r ExecuteScriptResult) {
+	b := opts.ToExecuteScriptMap()
+	resp, err := client.Post(ctx, actionURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200, 202},
+	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
+	return
+}

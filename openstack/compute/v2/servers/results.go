@@ -674,3 +674,33 @@ type SuspendResult struct {
 type ResumeResult struct {
 	gophercloud.ErrResult
 }
+
+// ExecuteScriptResult represents the result of a script execution.
+type ExecuteScriptResult struct {
+	gophercloud.Result
+}
+
+// Extract interprets any ExecuteScriptResult as an ExecuteScriptResponse.
+func (r ExecuteScriptResult) Extract() (*ExecuteScriptResponse, error) {
+	var s *ExecuteScriptResponse
+	err := r.ExtractInto(&s)
+	return s, err
+}
+
+// ExecuteScriptResponse represents the response from a script execution.
+type ExecuteScriptResponse struct {
+	// GuestExec contains the execution details.
+	GuestExec GuestExecDetails `json:"guestExec"`
+}
+
+// GuestExecDetails contains the details of the guest script execution.
+type GuestExecDetails struct {
+	// PID is the process ID of the executed script.
+	PID int `json:"pid"`
+
+	// StdOutFile is the file path for standard output.
+	StdOutFile string `json:"std_out_file"`
+
+	// StdErrorFile is the file path for standard error.
+	StdErrorFile string `json:"std_error_file"`
+}
